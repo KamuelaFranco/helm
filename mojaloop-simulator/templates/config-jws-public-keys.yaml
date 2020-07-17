@@ -2,17 +2,18 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: sim-jws-public-keys
+  name: {{ include "mojaloop-simulator.prefix" . }}jws-public-keys
   labels:
-    app: sim
-    chart: {{ template "mojaloop-simulator.chart" $ }}
-    release: {{ $.Release.Name }}
-    heritage: {{ $.Release.Service }}
+    app.kubernetes.io/name: {{ include "mojaloop-simulator.prefix" . }}jws-public-keys
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/version: "{{ $.Chart.AppVersion }}"
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version | replace "+" "_" }}
 data:
   {{- range $name, $customConfig := .Values.simulators }}
   {{- $config := merge $customConfig $.Values.defaults }}
-  {{- if and (eq ($config.config.schemeAdapter.env.VALIDATE_INBOUND_JWS | upper) "TRUE") (not $config.config.schemeAdapter.secrets.jws.pubKeyConfigMapName) }}
-  {{- if eq $config.config.schemeAdapter.secrets.jws.publicKey "" }}
+  {{- if and ($config.config.schemeAdapter.env.VALIDATE_INBOUND_JWS) (not $config.config.schemeAdapter.secrets.jws.pubKeyConfigMapName) }}
+  {{- if (not $config.config.schemeAdapter.secrets.jws.publicKey) }}
     {{- fail (printf "INBOUND_JWS enabled and jws public key not specified for '%s'. You need to specify %s.schemeAdapter.secrets.jws.publicKey or %s.schemeAdapter.secrets.jws.pubKeyConfigMapName." $name $name $name) }}
   {{- end }}
   {{ $name }}.pem: |-

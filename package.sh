@@ -1,5 +1,7 @@
 #!/bin/bash
 
+LOCAL_HELM_MOJALOOP_REPO_URI=${HELM_MOJALOOP_REPO_URI:-'https://docs.mojaloop.io/helm/repo'}
+
 #
 # Script to Package all charts, and created an index.yaml in ./repo directory
 #
@@ -124,10 +126,15 @@ echo "Packaging Mojaloop Simulator..."
 helm package -u -d ./repo ./mojaloop-simulator
 checkCommandResult
 
+echo "Packaging Mojaloop Testing Toolkit..."
+helm package -u -d ./repo ./ml-testing-toolkit
+checkCommandResult
+
+
 cd ./repo
 
-echo "Creating Helm repo index..."
-helm repo index . --url http://mojaloop.io/helm/repo
+echo "Creating Helm repo index for '$LOCAL_HELM_MOJALOOP_REPO_URI'..."
+helm repo index . --url $LOCAL_HELM_MOJALOOP_REPO_URI
 checkCommandResult
 
 echo "\
